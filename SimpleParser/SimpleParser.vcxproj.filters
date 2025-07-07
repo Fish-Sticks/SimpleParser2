@@ -41,5 +41,11 @@
     <ClInclude Include="Parser\PrattParser.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Parser\AST\BaseVisitor.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Parser\AST\VisitorImpls.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

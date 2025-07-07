@@ -31,8 +31,8 @@ void Lexer::Lexer::ParseInputStream(const std::string& input)
 				else
 					break; // We are at end of stream
 
-			} while (isdigit(currentChar)); // Reconstruct the number by itself
-			tokenStream.emplace_back(std::stoi(numberString));
+			} while (isdigit(currentChar) || currentChar == '.'); // Reconstruct the number by itself
+			tokenStream.emplace_back(std::stof(numberString)); // Bug: user can use multiple dots, idc.
 		}
 
 		switch (currentChar)

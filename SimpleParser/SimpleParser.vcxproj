@@ -137,6 +137,8 @@
   <ItemGroup>
     <ClInclude Include="Lexer\Lexer.hpp" />
     <ClInclude Include="Parser\AST\AST.hpp" />
+    <ClInclude Include="Parser\AST\BaseVisitor.hpp" />
+    <ClInclude Include="Parser\AST\VisitorImpls.hpp" />
     <ClInclude Include="Parser\PrattParser.hpp" />
     <ClInclude Include="Parser\TailRecursiveParser.hpp" />
   </ItemGroup>

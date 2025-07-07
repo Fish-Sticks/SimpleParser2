@@ -41,7 +41,7 @@ std::shared_ptr<Parser::AST::ASTBaseNode> Parser::TailRecursiveParser::ParseNega
 		Lexer::LexicalType currentOperator = lexer->peek().tokenType;
 		lexer->consume();
 
-		return std::make_shared<Parser::AST::ASTUnaryOperatorNode>(currentOperator, ParseNegate());
+		return std::make_shared<Parser::AST::ASTUnaryOperatorPrefixNode>(currentOperator, ParseNegate());
 	}
 
 	return ParseParenthesis();

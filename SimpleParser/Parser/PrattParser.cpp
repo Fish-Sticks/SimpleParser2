@@ -64,7 +64,7 @@ std::shared_ptr<Parser::AST::ASTBaseNode> Parser::PrattParser::ParseLoop(std::ui
 	else if (BindPower prePower = GetPrecedencePrefix(prefixToken.tokenType); prePower.rhs != 0)
 	{
 		lexer->consume();
-		lhs = std::make_unique<AST::ASTUnaryOperatorNode>(prefixToken.tokenType, ParseLoop(prePower.rhs));
+		lhs = std::make_unique<AST::ASTUnaryOperatorPrefixNode>(prefixToken.tokenType, ParseLoop(prePower.rhs));
 	}
 	else if (prefixToken.tokenType == Lexer::LexicalType::TOK_LPAREN) // Parenthesis are special since they define new "context"
 	{
@@ -90,7 +90,7 @@ std::shared_ptr<Parser::AST::ASTBaseNode> Parser::PrattParser::ParseLoop(std::ui
 				break;
 
 			lexer->consume();
-			lhs = std::make_unique<AST::ASTUnaryOperatorNode>(operatorToken.tokenType, lhs);
+			lhs = std::make_unique<AST::ASTUnaryOperatorPostfixNode>(operatorToken.tokenType, lhs);
 			continue;
 		}
 

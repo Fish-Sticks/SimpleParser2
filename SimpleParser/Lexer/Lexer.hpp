@@ -53,7 +53,7 @@ namespace Lexer
 			case LexicalType::TOK_EOF:
 				return "EOF";
 			case LexicalType::TOK_NUM:
-				return std::string("NUMBER: ") + std::to_string((int)value);
+				return std::string("NUMBER: ") + std::to_string(value);
 			case LexicalType::TOK_ADD:
 				return "ADD";
 			case LexicalType::TOK_NEG:

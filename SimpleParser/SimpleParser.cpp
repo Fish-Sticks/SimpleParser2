@@ -6,21 +6,24 @@
 #include "Lexer/Lexer.hpp"
 #include "Parser/TailRecursiveParser.hpp"
 #include "Parser/PrattParser.hpp"
-
+#include "Parser/AST/VisitorImpls.hpp"
 
 int main()
 {
-	std::printf("SimpleParser is a parser which implements both LL and LR parsers, using methods such as tail recursive parsing, pratt parsing, and SLR parsing.\n");
-	std::printf("Expressions are parsed into AST which can be evaluated.\n");
+	std::printf("SimpleParser is a parser which implements different LL parsers, using methods such as tail recursive parsing, and pratt parsing.\n");
+	std::printf("LR parsing is planned, but im currently working on a way to create it without automated parser generators, which really teach nothing.\n");
+	std::printf("Expressions are parsed into AST which can be evaluated by the visitor pattern.\n");
 
 	// (5 + (3 + 3 * 10 / 2 * (9)) % 2) * (10 * 1 / 2 + (3 - 2) ^ 3)
 	// -(3 * -10 + 2 ^ (-3 * -3)) + (-3-3-3-3-3-3*10+(-69))
 	
 	std::chrono::high_resolution_clock timer{};
+	std::shared_ptr<Parser::AST::DisplayVisitor> displayVisitor = std::make_shared<Parser::AST::DisplayVisitor>();
+	std::shared_ptr<Parser::AST::EvaluationVisitor> evaluateVisitor = std::make_shared<Parser::AST::EvaluationVisitor>();
 
 	// Test tail recursion
 	{
-		std::shared_ptr<Lexer::Lexer> myLexer = std::make_shared<Lexer::Lexer>("(5 + (3 + 3 * 10 / 2 * (9)) % 2) * (10 * 1 / 2 + (3 - 2) ^ 3)");
+		std::shared_ptr<Lexer::Lexer> myLexer = std::make_shared<Lexer::Lexer>("(5 + (3 + 3 * 10 / 2 * (9)) % 2) * (10 * 1 / 2 + (3 - 2) ^ 3) + 5 + -5");
 		std::shared_ptr<Parser::TailRecursiveParser> myParser = std::make_shared<Parser::TailRecursiveParser>(myLexer);
 		try
 		{
@@ -35,11 +38,11 @@ int main()
 				std::printf("Parsing failed!\n");
 			else
 			{
-				std::printf("Calculated result: %.2f\n", result->evaluate());
-				std::printf("Parenthesized: %s\n", result->print().c_str());
+				std::printf("Calculated result: %.2f\n", evaluateVisitor->EvaluateEquation(result));
+				std::printf("Parenthesized: %s\n", displayVisitor->GetDisplayEquation(result).c_str());
 			}
 
-			if (result->evaluate() != 30)
+			if (evaluateVisitor->EvaluateEquation(result) != 30)
 			{
 				std::printf("TAIL RECURSION TEST FAILED!\n");
 			}
@@ -52,8 +55,7 @@ int main()
 
 	// Test pratt
 	{
-		// std::shared_ptr<Lexer::Lexer> myLexer = std::make_shared<Lexer::Lexer>("-1k");
-		std::shared_ptr<Lexer::Lexer> myLexer = std::make_shared<Lexer::Lexer>("(5 + (3 + 3 * 10 / 2 * (9)) % 2) * (10 * 1 / 2 + (3 - 2) ^ 3)");
+		std::shared_ptr<Lexer::Lexer> myLexer = std::make_shared<Lexer::Lexer>("(1k + 49k) / 100k");
 		std::shared_ptr<Parser::PrattParser> myParser = std::make_shared<Parser::PrattParser>(myLexer);
 
 		try
@@ -69,8 +71,41 @@ int main()
 				std::printf("Parsing failed!\n");
 			else
 			{
-				std::printf("Calculated result: %.2f\n", result->evaluate());
-				std::printf("Parenthesized: %s\n", result->print().c_str());
+				std::printf("Calculated result: %.2f\n", evaluateVisitor->EvaluateEquation(result));
+				std::printf("Parenthesized: %s\n", displayVisitor->GetDisplayEquation(result).c_str());
+			}
+		}
+		catch (std::exception& e)
+		{
+			std::printf("%s\n", e.what());
+		}
+	}
+
+
+	std::printf("\n\nEnter any expressions below to test:\n");
+	while (true)
+	{
+		std::string input{};
+		std::getline(std::cin, input);
+
+		std::shared_ptr<Lexer::Lexer> myLexer = std::make_shared<Lexer::Lexer>(input);
+		std::shared_ptr<Parser::PrattParser> myParser = std::make_shared<Parser::PrattParser>(myLexer);
+
+		try
+		{
+			const auto& before = timer.now();
+			std::shared_ptr<Parser::AST::ASTBaseNode> result = myParser->ParseData();
+			const auto& after = timer.now();
+
+			std::uint64_t nanoSeconds = std::chrono::duration_cast<std::chrono::nanoseconds>(after - before).count();
+			std::printf("Compiling pratt took %d nanoseconds.\n", nanoSeconds);
+
+			if (result == nullptr)
+				std::printf("Parsing failed!\n");
+			else
+			{
+				std::printf("Calculated result: %.2f\n", evaluateVisitor->EvaluateEquation(result));
+				std::printf("Parenthesized: %s\n", displayVisitor->GetDisplayEquation(result).c_str());
 			}
 		}
 		catch (std::exception& e)
@@ -82,7 +117,6 @@ int main()
 
 /*
 	TODO:
-	Add postfix number notations to tail recursive parser
-	Add SLR parsing.
-	Add recursive ascent parsing.
+	Add postfix number notations to tail recursive parser (Not happening, idc enough to)
+	Divide by zero error (idc).
 */
