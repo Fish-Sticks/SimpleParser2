@@ -19,7 +19,9 @@ int main()
 	
 	std::chrono::high_resolution_clock timer{};
 	std::shared_ptr<Parser::AST::DisplayVisitor> displayVisitor = std::make_shared<Parser::AST::DisplayVisitor>();
+	std::shared_ptr<Parser::AST::SmartDisplayVisitor> smartDisplayVisitor = std::make_shared<Parser::AST::SmartDisplayVisitor>();
 	std::shared_ptr<Parser::AST::EvaluationVisitor> evaluateVisitor = std::make_shared<Parser::AST::EvaluationVisitor>();
+	std::shared_ptr<Parser::AST::ExplodeVisitor> explodeVisitor = std::make_shared<Parser::AST::ExplodeVisitor>();
 
 	// Test tail recursion
 	{
@@ -81,18 +83,17 @@ int main()
 		}
 	}
 
-
 	std::printf("\n\nEnter any expressions below to test:\n");
 	while (true)
 	{
 		std::string input{};
 		std::getline(std::cin, input);
 
-		std::shared_ptr<Lexer::Lexer> myLexer = std::make_shared<Lexer::Lexer>(input);
-		std::shared_ptr<Parser::PrattParser> myParser = std::make_shared<Parser::PrattParser>(myLexer);
-
 		try
 		{
+			std::shared_ptr<Lexer::Lexer> myLexer = std::make_shared<Lexer::Lexer>(input);
+			std::shared_ptr<Parser::PrattParser> myParser = std::make_shared<Parser::PrattParser>(myLexer);
+
 			const auto& before = timer.now();
 			std::shared_ptr<Parser::AST::ASTBaseNode> result = myParser->ParseData();
 			const auto& after = timer.now();
@@ -104,8 +105,13 @@ int main()
 				std::printf("Parsing failed!\n");
 			else
 			{
-				std::printf("Calculated result: %.2f\n", evaluateVisitor->EvaluateEquation(result));
+				std::printf("Calculated result: %.5f\n", evaluateVisitor->EvaluateEquation(result));
 				std::printf("Parenthesized: %s\n", displayVisitor->GetDisplayEquation(result).c_str());
+				std::printf("Smart display: %s\n", smartDisplayVisitor->GetSmartDisplayEquation(result).c_str());
+
+				std::shared_ptr<Parser::AST::ASTBaseNode> exploded = explodeVisitor->ExplodeExpression(result, 1);
+				std::printf("Exploded: %s\n", displayVisitor->GetDisplayEquation(exploded).c_str());
+				std::printf("Evaluated explosion: %.5f\n", evaluateVisitor->EvaluateEquation(exploded));
 			}
 		}
 		catch (std::exception& e)
