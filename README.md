@@ -15,6 +15,7 @@ The **SmartDisplayVisitor** class contains a visitor which only parenthesizes th
 <br>
 The **ExplodeVisitor** class contains a unique routine which will "obfuscate" your mathematical expression. It takes the AST and returns a clone of the AST with new logic inside it. It precomputes values using random, and forces the expressions to match their original number, but not directly state it. By doing multiple passes of this, you end up with an obfuscated sequence of numbers.  
 <br>
-**Warning**: The ExplodeVisitor can be imprecise because of floating point values. It is recommended to use fractions to express decimals if you will actually use this.
+**Warning**: The ExplodeVisitor can be imprecise because of floating point values. It is recommended to use fractions to express decimals if you will actually use this.  
+**Warning 2**: Smart display is slightly broken, it works with most expression but cases such as: `5 + 3 * 10 / 5 - 2 * (5 + 1 - (3 + 5 - (2 - 2 * 3)))` break it.
 <br>
 If you would like to help contribute, or add anything to the fun project, just make a pull request and/or message me.
