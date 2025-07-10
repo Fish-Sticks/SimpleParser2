@@ -180,6 +180,8 @@ namespace Parser::AST
 	{
 	private:
 		std::stringstream outputStream{};
+		std::vector<int> smartLevelStack{};
+		bool shouldContinue = false;
 
 		char GetOperationChar(Lexer::LexicalType op)
 		{
@@ -209,35 +211,126 @@ namespace Parser::AST
 				return '?';
 			}
 		}
+
+		int GetSmartLevel(Lexer::LexicalType op)
+		{
+			switch (op)
+			{
+			case Lexer::LexicalType::TOK_ADD: // Spaced by one for algorithm to determine left->right
+				return 1;
+			case Lexer::LexicalType::TOK_NEG:
+				return 2;
+			case Lexer::LexicalType::TOK_MUL:
+				return 4;
+			case Lexer::LexicalType::TOK_DIV:
+				return 5;
+			case Lexer::LexicalType::TOK_POW:
+				return 7;
+			case Lexer::LexicalType::TOK_MOD:
+				return 8;
+			default:
+				return 1;
+			}
+		}
 	public:
 		void Visit(ASTNumberNode* numberNode) // Fucking annoying to display
 		{
-			outputStream << numberNode->value;
+			if (!shouldContinue)
+			{
+				smartLevelStack.push_back(100);
+				return;
+			}
+
+			outputStream << std::fixed << std::setprecision(3) << numberNode->value;
 		}
 
 		void Visit(ASTUnaryOperatorPrefixNode* operationNode)
 		{
+			if (!shouldContinue)
+			{
+				smartLevelStack.push_back(0);
+				return;
+			}
+
 			outputStream << GetOperationChar(operationNode->operation);
 			operationNode->child->Accept(this);
 		}
 
 		void Visit(ASTUnaryOperatorPostfixNode* operationNode)
 		{
+			if (!shouldContinue)
+			{
+				smartLevelStack.push_back(0);
+				return;
+			}
+
 			operationNode->child->Accept(this);
 			outputStream << GetOperationChar(operationNode->operation);
 		}
 
+		// Must be able to peek at the child nodes to see if they are operation, and what operation they are?
 		void Visit(ASTBinaryOperatorNode* operationNode)
 		{
+			if (!shouldContinue)
+			{
+				smartLevelStack.push_back(GetSmartLevel(operationNode->operation));
+				return;
+			}
+
+			// Check the levels to make sure smart level is compliant, if not then parenthesis required.
+			bool usingParenthesisLeft = false;
+			bool usingParenthesisRight = false;
+
+			shouldContinue = false;
+			{
+				operationNode->left->Accept(this);
+				operationNode->right->Accept(this);
+
+				int levelRight = smartLevelStack.back();
+				smartLevelStack.pop_back();
+
+				int levelLeft = smartLevelStack.back();
+				smartLevelStack.pop_back();
+
+				int opSmartLevel = GetSmartLevel(operationNode->operation);
+
+				// ONLY WORKS ON LEFT SIDE (in cases where operations are such, 5 + 3 - 2 + 3 - 2, etc)
+				// Reason it only works left side is because math is left -> right, just like how my AST is parsed, this behavior doesn't occur on the right side.
+				if ((levelLeft < opSmartLevel) && ((levelLeft + 1) < opSmartLevel))
+					usingParenthesisLeft = true;
+
+				if (levelRight < opSmartLevel)
+					usingParenthesisRight = true;
+
+				// If they match and not a number, they must be parenthesized
+				if ((levelLeft == levelRight) && ((levelLeft != 100) && (levelRight != 100)) && (levelLeft && levelRight))
+				{
+					usingParenthesisLeft = true;
+					usingParenthesisRight = true;
+				}
+			}
+			shouldContinue = true;
+
+			if (usingParenthesisLeft)
+				outputStream << "(";
 			operationNode->left->Accept(this);
+			if (usingParenthesisLeft)
+				outputStream << ")";
+
 			outputStream << GetOperationChar(operationNode->operation);
+
+			if (usingParenthesisRight)
+				outputStream << "(";
 			operationNode->right->Accept(this);
+			if (usingParenthesisRight)
+				outputStream << ")";
 		}
 
 		std::string GetSmartDisplayEquation(std::shared_ptr<ASTBaseNode> node)
 		{
 			outputStream.str("");
 			outputStream.clear();
+			shouldContinue = true;
 
 			node->Accept(this);
 			return outputStream.str();

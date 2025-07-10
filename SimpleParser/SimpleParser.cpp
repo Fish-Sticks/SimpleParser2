@@ -106,12 +106,13 @@ int main()
 			else
 			{
 				std::printf("Calculated result: %.5f\n", evaluateVisitor->EvaluateEquation(result));
-				std::printf("Parenthesized: %s\n", displayVisitor->GetDisplayEquation(result).c_str());
+				std::printf("Direct display: %s\n", displayVisitor->GetDisplayEquation(result).c_str());
 				std::printf("Smart display: %s\n", smartDisplayVisitor->GetSmartDisplayEquation(result).c_str());
 
 				std::shared_ptr<Parser::AST::ASTBaseNode> exploded = explodeVisitor->ExplodeExpression(result, 1);
 				std::printf("Exploded: %s\n", displayVisitor->GetDisplayEquation(exploded).c_str());
 				std::printf("Evaluated explosion: %.5f\n", evaluateVisitor->EvaluateEquation(exploded));
+				std::printf("\n\n");
 			}
 		}
 		catch (std::exception& e)
