@@ -458,16 +458,17 @@ namespace Parser::AST
 
 		std::shared_ptr<ASTBaseNode> ExplodeExpression(std::shared_ptr<ASTBaseNode> node, int complexity)
 		{
+			std::shared_ptr<ASTBaseNode> currentNode = node;
 			std::srand(std::time(nullptr));
 			nodeStack.clear();
 			do
 			{
 				complexity--;
-				node->Accept(this);
-				node = nodeStack.back();
+				currentNode->Accept(this);
+				currentNode = nodeStack.back();
 				nodeStack.pop_back();
-			} while (complexity != 0);
-			return node;
+			} while (complexity > 0);
+			return currentNode;
 		}
 	};
 }

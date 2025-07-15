@@ -6,7 +6,7 @@ Parser::BindPower Parser::PrattParser::GetPrecedencePrefix(Lexer::LexicalType to
 	switch (tokType)
 	{
 	case Lexer::LexicalType::TOK_NEG:
-		return BindPower(7, 7);
+		return BindPower(9, 9);
 	default:
 		return BindPower(0, 0);
 	}
@@ -21,14 +21,14 @@ Parser::BindPower Parser::PrattParser::GetPrecedenceInfix(Lexer::LexicalType tok
 		return BindPower(1, 2);
 
 	case Lexer::LexicalType::TOK_MOD:
-		return BindPower(3, 3);
+		return BindPower(3, 4);
 
 	case Lexer::LexicalType::TOK_MUL:
 	case Lexer::LexicalType::TOK_DIV:
-		return BindPower(4, 5);
+		return BindPower(5, 6);
 
 	case Lexer::LexicalType::TOK_POW:
-		return BindPower(6, 6);
+		return BindPower(8, 7);
 
 	default:
 		return BindPower(0, 0);
